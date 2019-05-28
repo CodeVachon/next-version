@@ -1,0 +1,26 @@
+{
+  "name": "next-version",
+  "version": "0.1.0",
+  "description": "Increment a Versions Project and Create a new Merge Request on the Repo",
+  "main": "index.js",
+  "author": "Christopher Vachon <code@christophervachon.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:liaodrake/next-version.git"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "extend": "^3.0.2",
+    "figlet": "^1.2.1",
+    "inquirer": "^6.2.1",
+    "shelljs": "^0.8.3",
+    "simple-git": "^1.107.0"
+  },
+  "bin": {
+    "next-version": "./index.js"
+  },
+  "devDependencies": {
+    "jest": "^23.6.0"
+  }
+}
