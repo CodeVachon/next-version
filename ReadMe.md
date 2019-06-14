@@ -3,6 +3,8 @@ Next-Version
 
 CLI Tool to increment project version in files.
 
+[Find out more!](https://npm.christophervachon.com/-/web/detail/@christophervachon/next-version)
+
 ## Usage
 
 - Download the repository.
