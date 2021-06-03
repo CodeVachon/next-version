@@ -130,11 +130,16 @@ const updateFileset = (pkgFilePath, pkg, workingDir) => {
 
 const run = async () => {
     init();
-    const expectedWorkingBranch = "master";
     const pwd = await askAQuestion({
         type: "text",
         message: "What is the Directory Path to the project?",
         default: process.cwd()
+    });
+    const expectedWorkingBranch = await askAQuestion({
+        type: "list",
+        message: "What is the Default Branch for the project?",
+        choices: ["main", "master"],
+        default: "main"
     });
     const incValue = await askAQuestion({
         type: "list",
