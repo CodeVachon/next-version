@@ -1,6 +1,6 @@
 {
   "name": "next-version",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Increment a Versions Project and Create a new Merge Request on the Repo",
   "main": "index.js",
   "author": "Christopher Vachon <code@christophervachon.com>",
