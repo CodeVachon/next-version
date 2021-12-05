@@ -40,6 +40,7 @@ export class GitAPI {
 
     public async branchList() {
         const list = await this.call("branch");
+
         return list
             .split(new RegExp("[\n\r]{1,}", "g"))
             .map((v) => v.replace(new RegExp("^\\*"), "").trim())
@@ -50,8 +51,18 @@ export class GitAPI {
         return this.call("rev-parse --abbrev-ref HEAD");
     }
 
-    public checkout(branch: string, createNew = false) {
-        return this.call(`checkout ${createNew ? "-b " : ""}${branch}`);
+    public async checkout(branch: string, createNew = false) {
+        if (createNew) {
+            const currentList = await this.branchList();
+
+            if (currentList.some((v) => v === branch)) {
+                throw new Error(`A branch name "${branch}" already exists`);
+            }
+
+            return this.call(`checkout -b ${branch}`);
+        } else {
+            return this.call(`checkout ${branch}`);
+        }
     }
 
     public status() {
@@ -65,5 +76,32 @@ export class GitAPI {
 
     public pull() {
         return this.call("pull");
+    }
+
+    public add(fileName: string | string[]) {
+        return this.call(["add", ...(fileName instanceof Array ? fileName : [fileName])]);
+    }
+
+    public commit(message: string) {
+        return this.call(["commit", "-m", message]);
+    }
+
+    public async getRemotes() {
+        const remotesRaw = await this.call(["remote", "-v"]);
+        const remotes = remotesRaw
+            .split(new RegExp("[\n\r]{1,}"))
+            .map((v) => v.trim())
+            .filter((v) => v.length > 0)
+            .map((v) => v.split(new RegExp("\\s{1,}"))[0]);
+
+        return remotes.filter((elem, index, self) => index === self.indexOf(elem));
+    }
+
+    public async push(toUpStream?: string) {
+        if (toUpStream) {
+            return this.call(["push", "-u", toUpStream, await this.currentBranch()]);
+        } else {
+            return this.call(["push"]);
+        }
     }
 }

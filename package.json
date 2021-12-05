@@ -7,13 +7,14 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "./bootstrap.sh",
-    "dev": "yarn bootstrap && ts-node src/index -c $(pwd)/test-repo && rm -fr test-repo",
+    "dev": "yarn bootstrap && ts-node src/index -c $(pwd)/test-repo ",
     "start": "yarn build && node dist/index.js",
     "clean": "rm -fr dist pkg",
     "build": "tsc",
     "package": "pkg . ",
     "full": "yarn clean && yarn build && yarn package"
   },
+  "bin": "./dist/index.js",
   "pkg": {
     "scripts": "dist/**/*.js",
     "assets": [

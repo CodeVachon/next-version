@@ -2,3 +2,5 @@ node_modules
 old
 .DS_Store
 test-repo
+dist
+pkg

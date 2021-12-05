@@ -1,20 +1,14 @@
 import figlet from "figlet";
-import chalk from "chalk";
+import chalk, { Color } from "chalk";
 import inquirer from "inquirer";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { GitAPI } from "./GitApi";
 import { askAQuestion } from "./askAQuestion";
 import { COLOR } from "./color";
-import { logCmd, log } from "./log";
-
-type IncValue = "Major" | "Minor" | "Patch";
-interface ISettings {
-    cwd: string;
-    workingBranch: "main" | "master" | string;
-    incValue: IncValue;
-    createReleaseBranch: boolean;
-}
+import { log } from "./log";
+import { readPackageJson, writePackageJson } from "./packageJsonUtls";
+import { SemVar } from "./semvar";
 
 const validIncValues: IncValue[] = ["Major", "Minor", "Patch"];
 const yargsOptions: Record<string, yargs.Options> = {
@@ -105,6 +99,23 @@ const preRun = async (): Promise<Readonly<ISettings>> =>
             args
         )) as ISettings;
 
+        const logKeys = ["cwd", "incValue", "workingBranch"];
+        const maxLenght = logKeys.reduce((v, current) => {
+            if (current.length > v) {
+                return current.length;
+            } else {
+                return v;
+            }
+        }, 0);
+        console.info();
+        logKeys.forEach((key) => {
+            log(
+                `${key.padEnd(maxLenght)}   ${chalk.hex(COLOR.CYAN)(
+                    settings[key as keyof typeof settings]
+                )}`
+            );
+        });
+
         resolve(Object.freeze(settings));
     });
 
@@ -140,15 +151,49 @@ const main = async (settings: Readonly<ISettings>): Promise<string | void> => {
     }
     await git.pull();
 
-    // TODO: Read PKG.JSON to get current Version Number
+    console.info();
+    log(`Read ${chalk.hex(COLOR.CYAN)("package.json")}`);
+    const pkgText = await readPackageJson(settings.cwd);
+    const pkg = JSON.parse(pkgText);
+    log(`Current version: ${chalk.red(pkg.version)}`);
 
-    // TODO: Increment Version Number
+    const newVersion = new SemVar(pkg.version).inc(settings.incValue);
+    log(`New version:     ${chalk.green(newVersion)}`);
 
-    // TODO: Create Release Branch
+    console.info();
+    const newBranchName = `${settings.incValue === "Patch" ? "Patch" : "Release"}-v${newVersion}`;
+    log(`Create Release Branch: ${chalk.hex(COLOR.CYAN)(newBranchName)}`);
 
-    // TODO: UPDATE Verson Number in PKG.JSON
+    await git.checkout(newBranchName, true);
 
-    // TODO: COMMIT AND PUSH  (IF REQURIED TO PUSH)
+    console.info();
+    log(`Update ${chalk.hex(COLOR.CYAN)("package.json")}`);
+    const newPkgText = pkgText.replace(`"version": "${pkg.version}"`, `"version": "${newVersion}"`);
+    writePackageJson(settings.cwd, newPkgText);
+
+    console.info();
+    log("Commit Changes");
+    await git.add("package.json");
+    await git.commit(`Version ${newVersion} [Next Version]`);
+
+    if (settings.createReleaseBranch) {
+        console.info();
+        log(`Push ${chalk.hex(COLOR.CYAN)(newBranchName)}`);
+        const remotes = await git.getRemotes();
+
+        let useRemote = "origin";
+        if (remotes.length > 1) {
+            useRemote = await askAQuestion({
+                type: "list",
+                message: "Which Remote would you like to push too?",
+                choices: remotes
+            });
+        } else {
+            useRemote = remotes[0];
+        }
+
+        await git.push(useRemote);
+    }
 
     return Promise.resolve();
 };
