@@ -75,12 +75,22 @@ const preRun = async (): Promise<Readonly<ISettings>> =>
                         const git = new GitAPI({ cwd });
                         const branches = await git.branchList();
 
-                        return branches.filter(
+                        const filterList = branches.filter(
                             (v) =>
                                 !new RegExp("^(release|patch|feature|fix|hot-?fix|bug)", "i").test(
                                     v
                                 )
                         );
+
+                        filterList.sort((a) => {
+                            if (new RegExp("(main|master|production)").test(a)) {
+                                return -1;
+                            } else {
+                                return 0;
+                            }
+                        });
+
+                        return filterList;
                     }
                 },
                 {
@@ -100,7 +110,7 @@ const preRun = async (): Promise<Readonly<ISettings>> =>
         )) as ISettings;
 
         const logKeys = ["cwd", "incValue", "workingBranch"];
-        const maxLenght = logKeys.reduce((v, current) => {
+        const maxLength = logKeys.reduce((v, current) => {
             if (current.length > v) {
                 return current.length;
             } else {
@@ -110,7 +120,7 @@ const preRun = async (): Promise<Readonly<ISettings>> =>
         console.info();
         logKeys.forEach((key) => {
             log(
-                `${key.padEnd(maxLenght)}   ${chalk.hex(COLOR.CYAN)(
+                `${key.padEnd(maxLength)}   ${chalk.hex(COLOR.CYAN)(
                     settings[key as keyof typeof settings]
                 )}`
             );

@@ -83,7 +83,7 @@ export class GitAPI {
     }
 
     public commit(message: string) {
-        return this.call(["commit", "-m", message]);
+        return this.call(["commit", "--no-verify", "-m", message]);
     }
 
     public async getRemotes() {
@@ -99,9 +99,9 @@ export class GitAPI {
 
     public async push(toUpStream?: string) {
         if (toUpStream) {
-            return this.call(["push", "-u", toUpStream, await this.currentBranch()]);
+            return this.call(["push", "-u", toUpStream, await this.currentBranch(), "--no-verify"]);
         } else {
-            return this.call(["push"]);
+            return this.call(["push", "--no-verify"]);
         }
     }
 }
