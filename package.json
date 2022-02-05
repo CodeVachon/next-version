@@ -1,5 +1,5 @@
 {
-  "name": "next-version",
+  "name": "@codevachon/next-version",
   "version": "1.0.0",
   "main": "dist/index.js",
   "repository": "https://github.com/CodeVachon/next-version.git",
@@ -7,17 +7,19 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "./bootstrap.sh",
-    "dev": "yarn bootstrap && ts-node src/index -c $(pwd)/test-repo ",
-    "start": "yarn build && node dist/index.js",
+    "dev": "yarn bootstrap && ts-node src/cli -c $(pwd)/test-repo ",
+    "start": "yarn build && node dist/cli.js",
     "clean": "rm -fr dist pkg",
     "build": "tsc",
     "package": "pkg . ",
     "full": "yarn clean && yarn build && yarn package",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch -o "
+    "test:watch": "jest --watch -o ",
+    "docs": "yarn clean && typedoc src/index.ts",
+    "serve-docs": "yarn docs && http-server ./docs"
   },
-  "bin": "./dist/index.js",
+  "bin": "./dist/cli.js",
   "pkg": {
     "scripts": "dist/**/*.js",
     "assets": [
@@ -36,12 +38,15 @@
     "@types/ms": "^0.7.31",
     "@types/node": "^16.11.11",
     "@types/yargs": "^17.0.7",
+    "http-server": "^14.1.0",
     "jest": "^27.4.7",
     "jest-extended": "^1.2.0",
     "pkg": "^5.5.1",
     "prettier": "^2.5.0",
     "ts-jest": "^27.1.2",
     "ts-node": "^10.4.0",
+    "typedoc": "^0.22.11",
+    "typedoc-plugin-extras": "^2.2.3",
     "typescript": "^4.5.2"
   },
   "dependencies": {
