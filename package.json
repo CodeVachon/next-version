@@ -1,26 +1,62 @@
 {
-  "name": "next-version",
-  "version": "0.2.0",
-  "description": "Increment a Versions Project and Create a new Merge Request on the Repo",
-  "main": "index.js",
-  "author": "Christopher Vachon <code@christophervachon.com>",
+  "name": "@codevachon/next-version",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "repository": "https://github.com/CodeVachon/next-version.git",
+  "author": "Christopher Vachon <cvachon@fortyfournorth.ca>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:liaodrake/next-version.git"
+  "scripts": {
+    "bootstrap": "./bootstrap.sh",
+    "dev": "yarn bootstrap && ts-node src/cli -c $(pwd)/test-repo ",
+    "start": "yarn build && node dist/cli.js",
+    "clean": "rm -fr dist pkg",
+    "build": "tsc",
+    "package": "pkg . ",
+    "full": "yarn clean && yarn build && yarn package",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch -o ",
+    "docs": "yarn clean && typedoc src/index.ts",
+    "serve-docs": "yarn docs && http-server ./docs"
   },
-  "dependencies": {
-    "chalk": "^2.4.2",
-    "extend": "^3.0.2",
-    "figlet": "^1.2.1",
-    "inquirer": "^6.2.1",
-    "shelljs": "^0.8.3",
-    "simple-git": "^1.107.0"
-  },
-  "bin": {
-    "next-version": "./index.js"
+  "bin": "./dist/cli.js",
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": [
+      "node_modules/figlet/fonts/Colossal.flf",
+      "lib/**/*.js"
+    ],
+    "targets": [
+      "node16-macos-x64",
+      "node16-macos-arm64"
+    ],
+    "outputPath": "pkg"
   },
   "devDependencies": {
-    "jest": "^23.6.0"
+    "@types/figlet": "^1.5.4",
+    "@types/inquirer": "^8.1.3",
+    "@types/jest": "^27.4.0",
+    "@types/ms": "^0.7.31",
+    "@types/node": "^16.11.11",
+    "@types/yargs": "^17.0.7",
+    "http-server": "^14.1.0",
+    "jest": "^27.4.7",
+    "jest-extended": "^1.2.0",
+    "pkg": "^5.5.1",
+    "prettier": "^2.5.0",
+    "ts-jest": "^27.1.2",
+    "ts-node": "^10.4.0",
+    "typedoc": "^0.22.11",
+    "typedoc-plugin-extras": "^2.2.3",
+    "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "chalk": "^4",
+    "dayjs": "^1.10.7",
+    "execa": "^5",
+    "figlet": "^1.5.2",
+    "inquirer": "^8.2.0",
+    "ms": "^2.1.3",
+    "yargs": "^17.3.0"
   }
 }

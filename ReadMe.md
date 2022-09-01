@@ -1,5 +1,4 @@
-Next-Version
-============
+# Next-Version
 
 CLI Tool to increment project version in files.
 
@@ -7,9 +6,9 @@ CLI Tool to increment project version in files.
 
 ## Usage
 
-- Download the repository.
-- Install the dependancies with `Yarn` or `NPM` - `npm install`
-- Use `npm link` to make the project globally accessible
+-   Download the repository.
+-   Install the dependancies with `Yarn` or `NPM` - `npm install`
+-   Use `npm link` to make the project globally accessible
 
 ### Alternative
 
