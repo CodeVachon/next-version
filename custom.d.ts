@@ -4,4 +4,5 @@ interface ISettings {
     workingBranch: "main" | "master" | string;
     incValue: IncValue;
     createReleaseBranch: boolean;
+    workspaces: string | string[];
 }

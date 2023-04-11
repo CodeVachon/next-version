@@ -9,6 +9,10 @@ import { COLOR } from "./color";
 import { log } from "./log";
 import { readPackageJson, writePackageJson } from "./packageJsonUtls";
 import { SemVar } from "./semvar";
+import glob from "glob";
+import { parse } from "yaml";
+import fs from "node:fs";
+import path from "node:path";
 
 const validIncValues: IncValue[] = ["Major", "Minor", "Patch"];
 const yargsOptions: Record<string, yargs.Options> = {
@@ -33,6 +37,12 @@ const yargsOptions: Record<string, yargs.Options> = {
         alias: "i",
         describe: "value to increment",
         choices: validIncValues
+    },
+    workspaces: {
+        type: "string",
+        alias: "w",
+        describe: "Work Spaces",
+        default: []
     }
 };
 
@@ -109,7 +119,23 @@ const preRun = async (): Promise<Readonly<ISettings>> =>
             args
         )) as ISettings;
 
-        const logKeys = ["cwd", "incValue", "workingBranch"];
+        const workspaceFiles = await glob("./pnpm-workspace.yaml", { cwd: settings.cwd });
+        if (workspaceFiles.length > 0) {
+            const workspaceSettings = parse(
+                fs.readFileSync(path.resolve(settings.cwd, workspaceFiles[0]), "utf-8")
+            );
+
+            settings.workspaces = await askAQuestion({
+                name: "useWorkspaces",
+                type: "checkbox",
+                message: "We detected a workspace, which folders would you like to increment?",
+                choices: workspaceSettings.packages.map((v: string) =>
+                    String(v).replace(new RegExp("\\/\\*$"), "")
+                )
+            });
+        }
+
+        const logKeys = ["cwd", "incValue", "workingBranch", "workspaces"];
         const maxLength = logKeys.reduce((v, current) => {
             if (current.length > v) {
                 return current.length;
@@ -185,10 +211,52 @@ const main = async (settings: Readonly<ISettings>): Promise<string | void> => {
     log(`Update ${chalk.hex(COLOR.CYAN)("package.json")}`);
     const newPkgText = pkgText.replace(`"version": "${pkg.version}"`, `"version": "${newVersion}"`);
     writePackageJson(settings.cwd, newPkgText);
+    await git.add("package.json");
+
+    for (const workspace of settings.workspaces instanceof Array
+        ? settings.workspaces
+        : [settings.workspaces]) {
+        console.info();
+        log(`Checking Workspace: ${chalk.hex(COLOR.CYAN)(workspace)}`);
+        const workspaceFiles = await glob(`./${workspace}/**/package.json`, {
+            ignore: ["node_modules/**", "./**/node_modules/**"],
+            cwd: settings.cwd
+        }).then((results) =>
+            results.filter((result) => !new RegExp("node_modules", "gi").test(result))
+        );
+
+        if (workspaceFiles.length === 0) {
+            log(
+                `No ${chalk.hex(COLOR.ORANGE)(
+                    "package.json"
+                )} files found in Workspace: ${chalk.hex(COLOR.CYAN)(workspace)}`
+            );
+        } else {
+            log(
+                `${workspaceFiles.length} ${chalk.hex(COLOR.ORANGE)(
+                    "package.json"
+                )} files found in Workspace: ${chalk.hex(COLOR.CYAN)(workspace)}`
+            );
+            for (const fileName of workspaceFiles) {
+                console.info();
+                log(`Update ${chalk.hex(COLOR.CYAN)(fileName)}`);
+                const app_pkgFileName = settings.cwd + "/" + fileName;
+                const app_pkgText = await readPackageJson(app_pkgFileName);
+                const app_pkg = JSON.parse(app_pkgText);
+
+                const newAppPkgText = app_pkgText.replace(
+                    `"version": "${app_pkg.version}"`,
+                    `"version": "${newVersion}"`
+                );
+                writePackageJson(app_pkgFileName, newAppPkgText);
+
+                await git.add(fileName);
+            }
+        }
+    }
 
     console.info();
     log("Commit Changes");
-    await git.add("package.json");
     await git.commit(`Version ${newVersion} [Next Version]`);
 
     if (settings.createReleaseBranch) {
