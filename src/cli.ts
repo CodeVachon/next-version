@@ -219,9 +219,11 @@ const main = async (settings: Readonly<ISettings>): Promise<string | void> => {
         console.info();
         log(`Checking Workspace: ${chalk.hex(COLOR.CYAN)(workspace)}`);
         const workspaceFiles = await glob(`./${workspace}/**/package.json`, {
-            ignore: "node_modules/**",
+            ignore: ["node_modules/**", "./**/node_modules/**"],
             cwd: settings.cwd
-        });
+        }).then((results) =>
+            results.filter((result) => !new RegExp("node_modules", "gi").test(result))
+        );
 
         if (workspaceFiles.length === 0) {
             log(
